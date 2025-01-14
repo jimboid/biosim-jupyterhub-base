@@ -1,5 +1,6 @@
 # Start with JupyterHub image.
-FROM quay.io/jupyter/base-notebook:hub-5.2.1
+ARG BASE_IMAGE=hub-5.2.0
+FROM quay.io/jupyter/base-notebook:$BASE_IMAGE
 
 LABEL maintainer="James Gebbie-Rayet <james.gebbie@stfc.ac.uk>"
 
