@@ -25,5 +25,5 @@ jobs:
       - name: Build and Push image to Harbor
         run: |
           docker build . --build-arg BASE_IMAGE=hub-${{ matrix.jupyter-base }} -t harbor.stfc.ac.uk/biosimulation-cloud/biosim-jupyter-base:hub-${{ matrix.jupyter-base }}-$(date +'%Y-%m-%d')
-          docker push harbor.stfc.ac.uk/biosimulation-cloud/biosim-jupyter-base:hub-${{ matrix.jupyter-base }}-$(date +'%Y-%m-%d')-
+          docker push harbor.stfc.ac.uk/biosimulation-cloud/biosim-jupyter-base:hub-${{ matrix.jupyter-base }}-$(date +'%Y-%m-%d')
 
