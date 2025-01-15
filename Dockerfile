@@ -32,6 +32,9 @@ RUN apt-get update && apt-get -yq dist-upgrade \
 
 # Modified index for matomo metrics.
 #COPY --chown=1000:100 index.html /opt/conda/share/jupyter/lab/static/index.html
+COPY --chown=1000:100 matomo-js.txt /tmp
+
+RUN sed -e '/<\/body><\/html>/ {' -e 'r /tmp/matomo-js.txt' -e 'd' -e '}' -i /opt/conda/share/jupyter/lab/static/index.html
 
 # Switch to jovyan user.
 USER $NB_USER
