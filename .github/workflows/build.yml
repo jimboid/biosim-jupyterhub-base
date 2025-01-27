@@ -42,5 +42,5 @@ jobs:
           token: ${{ secrets.BUILD_TOKEN }}
           repository: jimboid/biosim-${{ matrix.repos }}-workshop
           event-type: build    
-          client_payload: {"tag": "hub-5.2.1-$(date +'%Y-%m-%d')"}
+          client_payload: '{"tag": "hub-5.2.1-01-01-2025"}'
 
