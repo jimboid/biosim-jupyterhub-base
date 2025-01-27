@@ -1,12 +1,10 @@
 name: Build and Push containers
 
 on:
-  push:
-    tags:
-      - '*'
+  workflow_dispatch:
 
 jobs:
-  base-build:
+  build:
     runs-on: ubuntu-24.04
     strategy:
       matrix:
@@ -30,105 +28,19 @@ jobs:
         run: |
           docker push harbor.stfc.ac.uk/biosimulation-cloud/biosim-jupyter-base:hub-${{ matrix.jupyter-base }}-$(date +'%Y-%m-%d')
 
-      - name: Trigger build of biosim-basic-analysis-workshop
-        run: |
-          curl -L \
-            -X POST \
-            -H "Accept: application/vnd.github+json" \
-            -H "Authorization: Bearer ${{ secrets.BUILD_TOKEN }" \
-            -H "X-GitHub-Api-Version: 2022-11-28" \
-            https://api.github.com/repos/jimboid/biosim-basic-analysis-workshop/dispatches \
-            -d '{"event_type":"build", "client_payload": {"tag": hub-${{ matrix.jupyter-base }}-$(date +'%Y-%m-%d')}}'
-
-      - name: Trigger build of biosim-basic-statistics-workshop
-        run: |
-          curl -L \
-            -X POST \
-            -H "Accept: application/vnd.github+json" \
-            -H "Authorization: Bearer ${{ secrets.BUILD_TOKEN }" \
-            -H "X-GitHub-Api-Version: 2022-11-28" \
-            https://api.github.com/repos/jimboid/biosim-basic-statistics-workshop/dispatches \
-            -d '{"event_type":"build", "client_payload": {"tag": hub-${{ matrix.jupyter-base }}-$(date +'%Y-%m-%d')}}'
-
-      - name: Trigger build of biosim-clustering-workshop
-        run: |
-          curl -L \
-            -X POST \
-            -H "Accept: application/vnd.github+json" \
-            -H "Authorization: Bearer ${{ secrets.BUILD_TOKEN }" \
-            -H "X-GitHub-Api-Version: 2022-11-28" \
-            https://api.github.com/repos/jimboid/biosim-clustering-workshop/dispatches \
-            -d '{"event_type":"build", "client_payload": {"tag": hub-${{ matrix.jupyter-base }}-$(date +'%Y-%m-%d')}}'
-
-
-      - name: Trigger build of biosim-equilibration-workshop
-        run: |
-          curl -L \
-            -X POST \
-            -H "Accept: application/vnd.github+json" \
-            -H "Authorization: Bearer ${{ secrets.BUILD_TOKEN }" \
-            -H "X-GitHub-Api-Version: 2022-11-28" \
-            https://api.github.com/repos/jimboid/biosim-equilibration-workshop/dispatches \
-            -d '{"event_type":"build", "client_payload": {"tag": hub-${{ matrix.jupyter-base }}-$(date +'%Y-%m-%d')}}'
-
-      - name: Trigger build of biosim-pca-workshop
-        run: |
-          curl -L \
-            -X POST \
-            -H "Accept: application/vnd.github+json" \
-            -H "Authorization: Bearer ${{ secrets.BUILD_TOKEN }" \
-            -H "X-GitHub-Api-Version: 2022-11-28" \
-            https://api.github.com/repos/jimboid/biosim-pca-workshop/dispatches \
-            -d '{"event_type":"build", "client_payload": {"tag": hub-${{ matrix.jupyter-base }}-$(date +'%Y-%m-%d')}}'
-
-      - name: Trigger build of biosim-pdb2pqr-workshop
-        run: |
-          curl -L \
-            -X POST \
-            -H "Accept: application/vnd.github+json" \
-            -H "Authorization: Bearer ${{ secrets.BUILD_TOKEN }" \
-            -H "X-GitHub-Api-Version: 2022-11-28" \
-            https://api.github.com/repos/jimboid/biosim-pdb2pqr-workshop/dispatches \
-            -d '{"event_type":"build", "client_payload": {"tag": hub-${{ matrix.jupyter-base }}-$(date +'%Y-%m-%d')}}'
-
-
-      - name: Trigger build of biosim-python-workshop
-        run: |
-          curl -L \
-            -X POST \
-            -H "Accept: application/vnd.github+json" \
-            -H "Authorization: Bearer ${{ secrets.BUILD_TOKEN }" \
-            -H "X-GitHub-Api-Version: 2022-11-28" \
-            https://api.github.com/repos/jimboid/biosim-python-workshop/dispatches \
-            -d '{"event_type":"build", "client_payload": {"tag": hub-${{ matrix.jupyter-base }}-$(date +'%Y-%m-%d')}}'
-
-      - name: Trigger build of biosim-qmmm-workshop
-        run: |
-          curl -L \
-            -X POST \
-            -H "Accept: application/vnd.github+json" \
-            -H "Authorization: Bearer ${{ secrets.BUILD_TOKEN }" \
-            -H "X-GitHub-Api-Version: 2022-11-28" \
-            https://api.github.com/repos/jimboid/biosim-qmmm-workshop/dispatches \
-            -d '{"event_type":"build", "client_payload": {"tag": hub-${{ matrix.jupyter-base }}-$(date +'%Y-%m-%d')}}'
-
-      - name: Trigger build of biosim-structure-validation-workshop
-        run: |
-          curl -L \
-            -X POST \
-            -H "Accept: application/vnd.github+json" \
-            -H "Authorization: Bearer ${{ secrets.BUILD_TOKEN }" \
-            -H "X-GitHub-Api-Version: 2022-11-28" \
-            https://api.github.com/repos/jimboid/biosim-structure-validation-workshop/dispatches \
-            -d '{"event_type":"build", "client_payload": {"tag": hub-${{ matrix.jupyter-base }}-$(date +'%Y-%m-%d')}}'
-
-      - name: Trigger build of biosim-ubiquitin-analysis-workshop
-        run: |
-          curl -L \
-            -X POST \
-            -H "Accept: application/vnd.github+json" \
-            -H "Authorization: Bearer ${{ secrets.BUILD_TOKEN }" \
-            -H "X-GitHub-Api-Version: 2022-11-28" \
-            https://api.github.com/repos/jimboid/biosim-ubiquitin-analysis-workshop/dispatches \
-            -d '{"event_type":"build", "client_payload": {"tag": hub-${{ matrix.jupyter-base }}-$(date +'%Y-%m-%d')}}'
+  trigger:
+    needs: build
+    runs-on: ubuntu-24.04
+    strategy:
+      matrix:
+        repos: ["basic-analysis", "basic-statistics", "clustering", "equilibration", "pca", "pdb2pqr", "python", "qmmm", "structure-validation", "ubiquitin-analysis"]
+    name: jupyterhub-${{ matrix.jupyter-base }}
+    steps:  
+      - name: Repository Dispatch Build Trigger
+        uses: peter-evans/repository-dispatch@v3
+        with:
+          token: ${{ secrets.BUILD_TOKEN }}
+          repository: jimboid/biosim-${{ matrix.repos }}-workshop
+          event-type: build    
+          client_payload: {"tag": "hub-5.2.1-$(date +'%Y-%m-%d')"}
 
