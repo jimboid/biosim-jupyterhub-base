@@ -48,7 +48,7 @@ jobs:
       - name: Push image to Harbor
         id: harborpush
         run: |
-          docker push --all-tags ${{ steps.envvar.outputs.path }}
+          docker push --all-tags ${{ steps.envvars.outputs.path }}
 
   trigger:
     needs: build
