@@ -24,9 +24,9 @@ jobs:
         run: |
           TAG="${{ env.JUPYTERHUB_VERSION }}-$(date +'%Y-%m-%d')"
           PATH="${{ env.REGISTRY }}/${{ env.REPO }}/${{ env.IMAGE_NAME }}"
-          echo "path=${PATH}" >> "$GITHUB_OUTPUT"
+          echo "path=$PATH" >> "$GITHUB_OUTPUT"
           echo ${PATH}
-          echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
           echo ${TAG}
 
       - name: Build image
