@@ -5,32 +5,50 @@ on:
 
 env:
   JUPYTERHUB_VERSION: "hub-5.2.1"
-  REGISTRY: harbor.stfc.ac.uk
-  REPO: biosimulation-cloud
-  IMAGE_NAME: biosim-jupyter-base
+  REGISTRY: "harbor.stfc.ac.uk"
+  REPO: "biosimulation-cloud"
+  IMAGE_NAME: "biosim-jupyter-base"
 
 jobs:
   build:
     runs-on: ubuntu-24.04
     name: base-build
+    outputs:
+      tag: ${{ steps.envvars.outputs.tag }}
+      path: ${{ steps.envvars.outputs.path }}
     steps:
       - uses: actions/checkout@v4
 
-      - name: Build image
+      - name: Set env vars
+        id: envvars
         run: |
-          echo "TAG=${{ env.JUPYTERHUB_VERSION }}-$(date +'%Y-%m-%d')" >> ${GITHUB_ENV}
-          docker build . --build-arg BASE_IMAGE=${{ env.JUPYTERHUB_VERSION }} -t ${{ env.REGISTRY }}/${{ env.REPO }}/${{ env.IMAGE_NAME }}:${{ env.TAG }}
+          TAG="${{ env.JUPYTERHUB_VERSION }}-$(date +'%Y-%m-%d')"
+          PATH="${{ env.REGISTRY }}/${{ env.REPO }}/${{ env.IMAGE_NAME }}"
+          echo "path=${PATH}" >> "$GITHUB_OUTPUT"
+          echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
+          echo ${PATH}
+          echo ${TAG}
+
+      - name: Build image
+        id: build
+        run: |
+          docker build . \
+          --build-arg BASE_IMAGE=${{ env.JUPYTERHUB_VERSION }} \
+          -t ${{ steps.envvars.outputs.path }}:${{ steps.envvars.outputs.tag }} \
+          -t ${{ steps.envvars.outputs.path }}:latest
 
       - name: Authenticate with harbor
+        id: harborauth
         uses: docker/login-action@v3
         with:
-          registry: harbor.stfc.ac.uk
+          registry: ${{ env.REGISTRY }}
           username: ${{ secrets.HARBOR_USERNAME }}
           password: ${{ secrets.HARBOR_PASSWORD }}
 
       - name: Push image to Harbor
+        id: harborpush
         run: |
-          docker push --all-tags $REPO/$IMAGE_NAME
+          docker push --all-tags ${{ steps.envvars.outputs.path }}
 
   trigger:
     needs: build
@@ -46,5 +64,5 @@ jobs:
           token: ${{ secrets.BUILD_TOKEN }}
           repository: jimboid/biosim-${{ matrix.repos }}-workshop
           event-type: build    
-          client-payload: '{"tag": "$TAG"}'
+          client-payload: '{"tag": "${{ needs.build.outputs.tag }}"}'
 
