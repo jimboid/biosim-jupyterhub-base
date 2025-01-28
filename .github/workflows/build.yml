@@ -13,32 +13,39 @@ jobs:
   build:
     runs-on: ubuntu-24.04
     name: base-build
+    outputs:
+      tag: ${{ steps.envvars.outputs.tag }}
+      path: ${{ steps.envvars.outputs.path }}
     steps:
       - uses: actions/checkout@v4
 
-      - name: set tag var
+      - name: Set env vars
+        id: envvars
         run: |
           TAG="${{ env.JUPYTERHUB_VERSION }}-$(date +'%Y-%m-%d')"
-          echo "TAG=${TAG}" >> $GITHUB_ENV
+          PATH="${{ env.REGISTRY }}/${{ env.REPO }}/${{ env.IMAGE_NAME }}"
+          echo "path=${PATH}" >> "$GITHUB_OUTPUT"
+          echo ${PATH}
+          echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
+          echo ${TAG}
 
       - name: Build image
         run: |
-          echo ${{ env.TAG }}
           docker build . \
           --build-arg BASE_IMAGE=${{ env.JUPYTERHUB_VERSION }} \
-          -t ${{ env.REGISTRY }}/${{ env.REPO }}/${{ env.IMAGE_NAME }}:${{ env.TAG }} \
-          -t ${{ env.REGISTRY }}/${{ env.REPO }}/${{ env.IMAGE_NAME }}:latest
+          -t ${{ steps.envvar.outputs.path }}:${{ steps.envvar.outputs.tag }} \
+          -t ${{ steps.envvar.outputs.path }}:latest
 
       - name: Authenticate with harbor
         uses: docker/login-action@v3
         with:
-          registry: harbor.stfc.ac.uk
+          registry: ${{ env.REGISTRY }}
           username: ${{ secrets.HARBOR_USERNAME }}
           password: ${{ secrets.HARBOR_PASSWORD }}
 
       - name: Push image to Harbor
         run: |
-          docker push --all-tags ${{ env.REGISTRY }}/${{ env.REPO }}/${{ env.IMAGE_NAME }}
+          docker push --all-tags ${{ steps.envvar.outputs.path }}
 
   trigger:
     needs: build
@@ -54,5 +61,5 @@ jobs:
           token: ${{ secrets.BUILD_TOKEN }}
           repository: jimboid/biosim-${{ matrix.repos }}-workshop
           event-type: build    
-          client-payload: '{"tag": "${{ env.TAG }}"}'
+          client-payload: '{"tag": "${{ needs.build.outputs.tag }}"}'
 
