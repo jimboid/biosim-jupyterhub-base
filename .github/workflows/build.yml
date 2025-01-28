@@ -32,12 +32,10 @@ jobs:
       - name: Build image
         id: build
         run: |
-          echo "${{ steps.envvar.outputs.path }}"
-          echo "${{ steps.envvar.outputs.tag }}"
           docker build . \
           --build-arg BASE_IMAGE=${{ env.JUPYTERHUB_VERSION }} \
-          -t ${{ steps.envvar.outputs.path }}:${{ steps.envvar.outputs.tag }} \
-          -t ${{ steps.envvar.outputs.path }}:latest
+          -t ${{ steps.envvars.outputs.path }}:${{ steps.envvars.outputs.tag }} \
+          -t ${{ steps.envvars.outputs.path }}:latest
 
       - name: Authenticate with harbor
         id: harborauth
