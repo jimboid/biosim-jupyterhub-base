@@ -23,15 +23,17 @@ jobs:
         id: envvars
         run: |
           TAG="${{ env.JUPYTERHUB_VERSION }}-$(date +'%Y-%m-%d')"
-          PATH=${{ env.REGISTRY }}/${{ env.REPO }}/${{ env.IMAGE_NAME }}
-          echo "path=$PATH" >> "$GITHUB_OUTPUT"
-          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          PATH="${{ env.REGISTRY }}/${{ env.REPO }}/${{ env.IMAGE_NAME }}"
+          echo "path=${PATH}" >> "$GITHUB_OUTPUT"
+          echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
           echo ${PATH}
           echo ${TAG}
 
       - name: Build image
         id: build
         run: |
+          echo "${{ steps.envvar.outputs.path }}"
+          echo "${{ steps.envvar.outputs.tag }}"
           docker build . \
           --build-arg BASE_IMAGE=${{ env.JUPYTERHUB_VERSION }} \
           -t ${{ steps.envvar.outputs.path }}:${{ steps.envvar.outputs.tag }} \
