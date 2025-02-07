@@ -1,4 +1,4 @@
-name: Build base
+name: base container
 
 on:
   workflow_dispatch:
