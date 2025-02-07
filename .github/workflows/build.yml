@@ -55,7 +55,7 @@ jobs:
     runs-on: ubuntu-24.04
     strategy:
       matrix:
-        repos: ["basic-analysis", "basic-statistics", "clustering", "docking", "equilibration", "pca", "pdb2pqr", "python", "qmmm", "structure-validation", "ubiquitin-analysis"]
+        repos: ["aiida-gpcr", "aiida-lysozyme", "basic-analysis", "basic-statistics", "clustering", "docking", "enhanced-sampling", "equilibration", "nemd", "pca", "pdb2pqr", "python", "qmmm", "structure-validation", "ubiquitin-analysis"]
     name: jupyterhub-${{ matrix.jupyter-base }}
     steps:  
       - name: Repository Dispatch Build Trigger
