@@ -1,5 +1,4 @@
-name: base container
-
+name: build
 on:
   workflow_dispatch:
 
