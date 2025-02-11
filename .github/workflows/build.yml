@@ -58,12 +58,15 @@ jobs:
                 "aiida-lysozyme",
                 "basic-analysis",
                 "basic-statistics",
+                "beginners"
                 "clustering",
+                "codeentropy"
                 "docking",
                 "enhanced-sampling",
                 "equilibration",
                 "introamber",
                 "nemd",
+                "openff"
                 "pca",
                 "pdb2pqr",
                 "python",
