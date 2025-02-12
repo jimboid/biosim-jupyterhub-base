@@ -58,7 +58,7 @@ jobs:
 
       - name: 'Build Inventory Image'
         run: |
-          docker push --all-tags ghcr.io/CCPBioSim/${{ env.IMAGE_NAME }}
+          docker push --all-tags ghcr.io/ccpbiosim/${{ env.IMAGE_NAME }}
 
   trigger:
     needs: build
