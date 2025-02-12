@@ -3,6 +3,10 @@ ARG BASE_IMAGE=hub-5.2.0
 FROM quay.io/jupyter/base-notebook:$BASE_IMAGE
 
 LABEL maintainer="James Gebbie-Rayet <james.gebbie@stfc.ac.uk>"
+LABEL org.opencontainers.image.source=https://github.com/jimboid/biosim-jupyterhub-base
+LABEL org.opencontainers.image.description="A base container image derived from jupyterhub base containers with some extra utilities installed."
+LABEL org.opencontainers.image.licenses=MIT
+
 
 # Root to install "rooty" things.
 USER root
