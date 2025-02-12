@@ -49,6 +49,17 @@ jobs:
         run: |
           docker push --all-tags ${{ steps.envvars.outputs.path }}
 
+      - name: Authenticate with GHCR
+        uses: docker/login-action@v1
+        with:
+          registry: ghcr.io
+          username: ${{github.actor}}
+          password: ${{secrets.BUILD_TOKEN}}
+
+      - name: 'Build Inventory Image'
+        run: |
+          docker push --all-tags ghcr.io/CCPBioSim/${{ env.IMAGE_NAME }}
+
   trigger:
     needs: build
     runs-on: ubuntu-24.04
