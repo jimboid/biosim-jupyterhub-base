@@ -37,7 +37,7 @@ jobs:
           -t ${{ steps.envvars.outputs.path }}:latest
 
       - name: Authenticate with GHCR
-        uses: docker/login-action@v1
+        uses: docker/login-action@v3.3.0
         with:
           registry: ghcr.io
           username: ${{github.actor}}
