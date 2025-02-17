@@ -3,7 +3,6 @@ on:
   workflow_dispatch:
 
 env:
-  JUPYTERHUB_VERSION: "hub-5.2.1"
   REGISTRY: "ghcr.io"
   REPO: "jimboid"
   IMAGE_NAME: "biosim-jupyter-base"
@@ -32,7 +31,6 @@ jobs:
         id: build
         run: |
           docker build . \
-          --build-arg BASE_IMAGE=${{ env.JUPYTERHUB_VERSION }} \
           -t ${{ steps.envvars.outputs.path }}:${{ steps.envvars.outputs.tag }} \
           -t ${{ steps.envvars.outputs.path }}:latest
 
