@@ -1,6 +1,5 @@
 # Start with JupyterHub image.
-ARG BASE_IMAGE=hub-5.2.0
-FROM quay.io/jupyter/base-notebook:$BASE_IMAGE
+FROM quay.io/jupyter/base-notebook:hub-5.2.1
 
 LABEL maintainer="James Gebbie-Rayet <james.gebbie@stfc.ac.uk>"
 LABEL org.opencontainers.image.source=https://github.com/jimboid/biosim-jupyterhub-base
