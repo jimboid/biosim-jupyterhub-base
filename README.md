@@ -2,7 +2,7 @@ CCPBioSim Jupyterhub base container
 ===================================
 
 [![base container](https://github.com/jimboid/biosim-jupyterhub-base/actions/workflows/build.yml/badge.svg?branch=main)](https://github.com/jimboid/biosim-jupyterhub-base/actions/workflows/build.yml)
-[![pulls](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fipitio.github.io%2Fbackage%2Fjimboid%2Fbiosim-jupyterhub-base%2Fbiosim-jupyterhub-base.json&query=%24.downloads&logo=github&label=pulls&color=blue)](https://github.com/jimboid/biosim-jupyterhub-base)
+[![pulls](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fipitio.github.io%2Fbackage%2Fjimboid%2Fbiosim-jupyterhub-base%2Fbiosim-jupyter-base.json&query=%24.downloads&logo=github&label=pulls&color=blue)](https://github.com/jimboid/biosim-jupyterhub-base)
 
 This container is derived from the jupyter/base-notebook:hub image. We have
 modified it to include some extra software utilities and web-services specific
