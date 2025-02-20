@@ -4,7 +4,7 @@ on:
 
 env:
   REGISTRY: "ghcr.io"
-  REPO: "jimboid"
+  OWNER: "jimboid"
   IMAGE_NAME: "biosim-jupyter-base"
 
 jobs:
@@ -22,7 +22,7 @@ jobs:
         id: envvars
         run: |
           TAG="$(cat Dockerfile | grep "FROM" | cut -d':' -f2)-$(date +'%Y-%m-%d')"
-          PATH="${{ env.REGISTRY }}/${{ env.REPO }}/${{ env.IMAGE_NAME }}"
+          PATH="${{ env.REGISTRY }}/${{ env.OWNER }}/${{ env.IMAGE_NAME }}"
           echo "path=${PATH}" >> "$GITHUB_OUTPUT"
           echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
           echo ${PATH}
@@ -46,6 +46,7 @@ jobs:
         uses: docker/build-push-action@v6.14.0
         with:
           platforms: linux/amd64,linux/arm64
+          sbom: true
           push: true
           tags: ${{ steps.envvars.outputs.path }}:latest,${{ steps.envvars.outputs.path }}:${{ steps.envvars.outputs.tag }}
 
