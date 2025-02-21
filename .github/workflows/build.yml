@@ -59,7 +59,7 @@ jobs:
             annotation-index.org.opencontainers.image.source=https://github.com/jimboid/biosim-jupyterhub-base
             annotation-index.org.opencontainers.image.licenses=MIT
             annotation-index.org.opencontainers.image.description=A base container image derived from jupyterhub base containers with some extra utilities installed.
-          provenance: false
+          provenance: true
           sbom: true
 
 #  trigger:
