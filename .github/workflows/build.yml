@@ -65,37 +65,36 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           annotations: ${{ steps.meta.outputs.annotations }}
 
-#  trigger:
-#    needs: build
-#    runs-on: ubuntu-24.04
-#    strategy:
-#      matrix:
-#        repos: ["aiida-gpcr",
-#                "aiida-lysozyme",
-#                "basic-analysis",
-#                "basic-statistics",
-#                "beginners",
-#                "clustering",
-#                "codeentropy",
-#                "docking",
-#                "enhanced-sampling",
-#                "equilibration",
-#                "introamber",
-#                "nemd",
-#                "openff",
-#                "pca",
-#                "pdb2pqr",
-#                "python",
-#                "qmmm",
-#                "structure-validation",
-#                "ubiquitin-analysis"]
-#    name: jupyterhub-${{ matrix.jupyter-base }}
-#    steps:  
-#      - name: Repository Dispatch Build Trigger
-#        uses: peter-evans/repository-dispatch@v3
-#        with:
-#          token: ${{ secrets.BUILD_TOKEN }}
-#          repository: jimboid/biosim-${{ matrix.repos }}-workshop
-#          event-type: build    
-#          client-payload: '{"tag": "${{ needs.build.outputs.tag }}"}'
-
+  trigger:
+    needs: build
+    runs-on: ubuntu-24.04
+    strategy:
+      matrix:
+        repos: ["aiida-gpcr",
+                "aiida-lysozyme",
+                "basic-analysis",
+                "basic-statistics",
+                "beginners",
+                "clustering",
+                "codeentropy",
+                "docking",
+                "enhanced-sampling",
+                "equilibration",
+                "introamber",
+                "nemd",
+                "openff",
+                "pca",
+                "pdb2pqr",
+                "python",
+                "qmmm",
+                "structure-validation",
+                "ubiquitin-analysis"]
+    name: jupyterhub-${{ matrix.jupyter-base }}
+    steps:  
+      - name: Repository Dispatch Build Trigger
+        uses: peter-evans/repository-dispatch@v3
+        with:
+          token: ${{ secrets.BUILD_TOKEN }}
+          repository: jimboid/biosim-${{ matrix.repos }}-workshop
+          event-type: build    
+          client-payload: '{"tag": "${{ needs.build.outputs.tag }}"}'
