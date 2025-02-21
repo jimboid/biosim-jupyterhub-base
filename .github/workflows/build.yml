@@ -4,8 +4,7 @@ on:
 
 env:
   REGISTRY: "ghcr.io"
-  OWNER: "jimboid"
-  IMAGE_NAME: "biosim-jupyter-base"
+  IMAGE: ${{ github.repository }}
 
 jobs:
   build:
@@ -22,11 +21,24 @@ jobs:
         id: envvars
         run: |
           TAG="$(cat Dockerfile | grep "FROM" | cut -d':' -f2)-$(date +'%Y-%m-%d')"
-          PATH="${{ env.REGISTRY }}/${{ env.OWNER }}/${{ env.IMAGE_NAME }}"
+          PATH="${{ env.REGISTRY }}/${{ env.IMAGE }}"
           echo "path=${PATH}" >> "$GITHUB_OUTPUT"
           echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
-          echo ${PATH}
-          echo ${TAG}
+
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ steps.envvars.outputs.path }}
+          tags: |
+            latest
+            ${{ steps.envvars.outputs.tag }}
+          labels: |
+            annotation-index.org.opencontainers.image.source=https://github.com/jimboid/biosim-jupyterhub-base
+            annotation-index.org.opencontainers.image.licenses=MIT
+            annotation-index.org.opencontainers.image.description=A base container image derived from jupyterhub base containers with some extra utilities installed.
+        env:
+          DOCKER_METADATA_ANNOTATIONS_LEVELS: manifest,index
 
       - name: Set up QEMU
         id: qemu
@@ -49,11 +61,9 @@ jobs:
         uses: docker/build-push-action@v6.14.0
         with:
           platforms: linux/amd64,linux/arm64
-          sbom: true
           push: true
-          tags: ${{ steps.envvars.outputs.path }}:latest,${{ steps.envvars.outputs.path }}:${{ steps.envvars.outputs.tag }}
-          outputs: |
-            type=image,name=target,annotation-index.org.opencontainers.image.description=A base container image derived from jupyterhub base containers with some extra utilities installed.,annotation-index.org.opencontainers.image.source=https://github.com/jimboid/biosim-jupyterhub-base,annotation-index.org.opencontainers.image.licenses=MIT
+          tags: ${{ steps.meta.outputs.tags }}
+          annotations: ${{ steps.meta.outputs.annotations }}
 
 #  trigger:
 #    needs: build
