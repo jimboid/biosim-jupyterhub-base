@@ -25,6 +25,21 @@ jobs:
           echo "path=${PATH}" >> "$GITHUB_OUTPUT"
           echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
 
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ steps.envvars.outputs.path }}
+          tags: |
+            latest
+            ${{ steps.envvars.outputs.tag }}
+          labels: |
+            annotation-index.org.opencontainers.image.source=https://github.com/jimboid/biosim-jupyterhub-base
+            annotation-index.org.opencontainers.image.licenses=MIT
+            annotation-index.org.opencontainers.image.description=A base container image derived from jupyterhub base containers with some extra utilities installed.
+        env:
+          DOCKER_METADATA_ANNOTATIONS_LEVELS: manifest,index
+
       - name: Set up QEMU
         id: qemu
         uses: docker/setup-qemu-action@v3.4.0
@@ -47,17 +62,8 @@ jobs:
         with:
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: |
-            ${{ steps.envvars.outputs.path }}:latest
-            ${{ steps.envvars.outputs.path }}:${{ steps.envvars.outputs.tag }}
-          outputs: |
-            type=image
-            name=target
-            annotation-index.org.opencontainers.image.source=https://github.com/jimboid/biosim-jupyterhub-base
-            annotation-index.org.opencontainers.image.licenses=MIT
-            annotation-index.org.opencontainers.image.description=A base container image derived from jupyterhub base containers with some extra utilities installed.
-          provenance: false
-          sbom: false
+          tags: ${{ steps.meta.outputs.tags }}
+          annotations: ${{ steps.meta.outputs.annotations }}
 
 #  trigger:
 #    needs: build
