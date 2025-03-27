@@ -92,7 +92,7 @@ jobs:
     name: jupyterhub-${{ matrix.jupyter-base }}
     steps:  
       - name: Repository Dispatch Build Trigger
-        uses: peter-evans/repository-dispatch@v3
+        uses: peter-evans/repository-dispatch@v3.0.0
         with:
           token: ${{ secrets.BUILD_TOKEN }}
           repository: jimboid/biosim-${{ matrix.repos }}-workshop
