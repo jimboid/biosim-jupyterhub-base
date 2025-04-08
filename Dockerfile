@@ -26,6 +26,7 @@ RUN apt-get update && apt-get -yq dist-upgrade \
     make \
     openssh-client \
     rsync \
+    unzip \
     vim \
     wget \
     xz-utils \
