@@ -98,7 +98,7 @@ jobs:
           images: ghcr.io/${{ github.repository }}
           tags: |
             latest
-            ${{ steps.envvars.outputs.tag }}
+            ${{ needs.build.outputs.tag }}
           labels: |
             annotation-index.org.opencontainers.image.source=https://github.com/jimboid/biosim-jupyterhub-base
             annotation-index.org.opencontainers.image.licenses=MIT
