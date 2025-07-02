@@ -99,10 +99,6 @@ jobs:
           tags: |
             latest
             ${{ needs.build.outputs.tag }}
-          labels: |
-            annotation-index.org.opencontainers.image.licenses=MIT
-        env:
-          DOCKER_METADATA_ANNOTATIONS_LEVELS: manifest,index
 
       - name: Create manifest list and push
         id: annotate
