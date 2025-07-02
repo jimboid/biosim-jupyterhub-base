@@ -100,16 +100,28 @@ jobs:
             latest
             ${{ needs.build.outputs.tag }}
           labels: |
-            annotation-index.org.opencontainers.image.source=https://github.com/jimboid/biosim-jupyterhub-base
             annotation-index.org.opencontainers.image.licenses=MIT
-            annotation-index.org.opencontainers.image.description=A base container image derived from jupyterhub base containers with some extra utilities installed.
         env:
           DOCKER_METADATA_ANNOTATIONS_LEVELS: manifest,index
 
       - name: Create manifest list and push
+        id: annotate
+        continue-on-error: true
         working-directory: ${{ runner.temp }}/digests
         run: |
           docker buildx imagetools create $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
+            --annotation='index:org.opencontainers.image.description=${{ github.event.repository.description }}' \
+            --annotation='index:org.opencontainers.image.licenses=MIT' \
+            --annotation='index:org.opencontainers.image.created=${{ steps.timestamp.outputs.timestamp }}' \
+            --annotation='index:org.opencontainers.image.url=${{ github.event.repository.url }}' \
+            --annotation='index:org.opencontainers.image.source=${{ github.event.repository.url }}' \
+            $(printf 'ghcr.io/${{ github.repository }}@sha256:%s ' *)
+
+      - name: Create manifest list and push without annotations
+        if: steps.annotate.outcome == 'failure'
+        working-directory: ${{ runner.temp }}/digests
+        run: |
+          docker buildx imagetools create  $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
             $(printf 'ghcr.io/${{ github.repository }}@sha256:%s ' *)
 
       - name: Inspect image
