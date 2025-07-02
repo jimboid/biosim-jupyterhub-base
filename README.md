@@ -47,7 +47,7 @@ which will contain training material and any specific software libraries that
 these notebooks use. This base image is already built and available on STFC
 Harbor and to include it in your project you only need add the line::
 
-    FROM harbor.stfc.ac.uk/biosimulation-cloud/biosim-jupyterhub-base:latest
+    FROM ghcr.io/jimboid/biosim-jupyterhub-base:latest
 
 to your Dockerfile. This will then pull this base container and build your
 container on top of it. So you should add the code to copy files, install extra
