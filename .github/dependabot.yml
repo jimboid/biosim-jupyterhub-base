@@ -12,6 +12,8 @@ updates:
       interval: "daily"
       time: "09:00"
       timezone: "UTC"
+    assignees:
+      - "jimboid"
   - package-ecosystem: "docker"
     directory: "/"
     schedule:
