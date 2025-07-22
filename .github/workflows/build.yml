@@ -125,7 +125,9 @@ jobs:
           docker buildx imagetools inspect ghcr.io/${{ github.repository }}:${{ needs.build.outputs.tag }}
 
   trigger:
-    needs: merge
+    needs: 
+      - merge
+      - build
     runs-on: ubuntu-24.04
     strategy:
       matrix:
