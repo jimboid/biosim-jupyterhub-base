@@ -23,7 +23,7 @@ jobs:
         run: |
           platform=${{ matrix.platform }}
           echo "PLATFORM_PAIR=${platform//\//-}" >> $GITHUB_ENV
-          TAG="$(cat Dockerfile | grep "FROM" | cut -d':' -f2)-$(date +'%Y-%m-%d')"
+          TAG="$(date +'%Y-%m-%d')"
           echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
 
       - name: Metadata
