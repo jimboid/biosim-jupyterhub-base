@@ -1,6 +1,10 @@
 name: build
 on:
   workflow_dispatch:
+  schedule:
+    - cron: '30 9 * * 1,3' # runs workflow every Monday and Wednesday at 9:30 UTC.
+    - cron: '30 9 * * 2,4' # runs workflow every Tuesday and Thursday at 9:30 UTC.
+
 
 jobs:
   build:
