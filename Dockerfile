@@ -14,21 +14,29 @@ USER root
 # needing root.
 RUN apt-get update && apt-get -yq dist-upgrade \
  && apt-get install -yq --no-install-recommends \
+    bc \
+    bison \  
     bzip2 \
     cmake \
     curl \
-    sed \
+    flex \
     gcc \
     gfortran \
     git \
     g++ \
-    nano \
+    libz-dev \
+    libbz2-dev \
     make \
+    nano \
     openssh-client \
+    patch \
     rsync \
+    sed \
+    tcsh \
     unzip \
     vim \
     wget \
+    xorg-dev \
     xz-utils \
     zlib1g-dev \
  && apt-get clean \
