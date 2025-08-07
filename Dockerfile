@@ -15,7 +15,8 @@ USER root
 RUN apt-get update && apt-get -yq dist-upgrade \
  && apt-get install -yq --no-install-recommends \
     bc \
-    bison \  
+    bison \
+    build-essential \
     bzip2 \
     cmake \
     curl \
