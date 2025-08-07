@@ -21,10 +21,8 @@ RUN apt-get update && apt-get -yq dist-upgrade \
     cmake \
     curl \
     flex \
-    gcc \
     gfortran \
     git \
-    g++ \
     libz-dev \
     libbz2-dev \
     make \
