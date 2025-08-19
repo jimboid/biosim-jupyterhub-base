@@ -1,5 +1,5 @@
 # Start with JupyterHub image.
-FROM quay.io/jupyter/base-notebook:hub-5.3.0
+FROM quay.io/jupyter/base-notebook:82d322f00937
 
 LABEL maintainer="James Gebbie-Rayet <james.gebbie@stfc.ac.uk>"
 LABEL org.opencontainers.image.source=https://github.com/jimboid/biosim-jupyterhub-base
