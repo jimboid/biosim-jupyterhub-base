@@ -100,7 +100,7 @@ jobs:
         uses: docker/metadata-action@v5.8.0
         with:
           images: ghcr.io/${{ github.repository }}
-          tags: dev.build
+          tags: dev
 
       - name: Create manifest list and push
         id: annotate
@@ -144,12 +144,13 @@ jobs:
       - name: Test notebooks
         shell: bash
         run: |
-          docker run -t ghcr.io/${{ github.repository }}:dev.build bash -c " \
+          docker run -t ghcr.io/${{ github.repository }}:dev bash -c " \
             conda install mamba; \
             mamba install -c conda-forge -y aiida-core; "
 
   tags:
     runs-on: ubuntu-24.04
+    if: github.event_name != 'pull_request'
     name: add tags
     needs:
       - build
@@ -163,55 +164,47 @@ jobs:
           username: ${{github.actor}}
           password: ${{secrets.BUILD_TOKEN}}
 
-      - name: tag as tested
-        shell: bash
-        run: |
-          docker buildx imagetools create \
-            --tag ghcr.io/${{ github.repository }}:dev.tested \
-            ghcr.io/${{ github.repository }}:dev.build
-
       - name: tag release versions
-        if: github.event_name != 'pull_request'
         shell: bash
         run: |
           docker buildx imagetools create \
             --tag ghcr.io/${{ github.repository }}:latest \
             --tag ghcr.io/${{ github.repository }}:${{ needs.build.outputs.tag }} \
-            ghcr.io/${{ github.repository }}:dev.build
+            ghcr.io/${{ github.repository }}:dev
 
-#  triggers:
-#    runs-on: ubuntu-24.04
-#    needs:
-#      - build
-#      - tags
-#    strategy:
-#      matrix:
-#        repos: ["aiida-gpcr-workshop",
-#                "aiida-lysozyme-workshop",
-#                "basic-analysis-workshop",
-#                "basic-statistics-workshop",
-#                "beginners-workshop",
-#                "clustering-workshop",
-#                "codeentropy-workshop",
-#                "docking-workshop",
-#                "enhanced-sampling-workshop",
-#                "equilibration-workshop",
-#                "introamber-workshop",
-#                "nemd-workshop",
-#                "openff-workshop",
-#                "pca-workshop",
-#                "pdb2pqr-workshop",
-#                "python-workshop",
-#                "qmmm-workshop",
-#                "structure-validation-workshop",
-#                "ubiquitin-analysis-workshop"]
-#    name: jupyterhub-${{ matrix.jupyter-base }}
-#    steps:  
-#      - name: Trigger to build workshops
-#        uses: peter-evans/repository-dispatch@v3.0.0
-#        with:
-#          token: ${{ secrets.BUILD_TOKEN }}
-#          repository: jimboid/biosim-${{ matrix.repos }}
-#          event-type: build    
-#          client-payload: '{"tag": "${{ needs.build.outputs.tag }}"}'
-
+  triggers:
+    runs-on: ubuntu-24.04
+    if: github.event_name != 'pull_request'
+    needs:
+      - build
+      - tags
+    strategy:
+      matrix:
+        repos: ["aiida-gpcr-workshop",
+                "aiida-lysozyme-workshop",
+                "basic-analysis-workshop",
+                "basic-statistics-workshop",
+                "beginners-workshop",
+                "clustering-workshop",
+                "codeentropy-workshop",
+                "docking-workshop",
+                "enhanced-sampling-workshop",
+                "equilibration-workshop",
+                "introamber-workshop",
+                "nemd-workshop",
+                "openff-workshop",
+                "pca-workshop",
+                "pdb2pqr-workshop",
+                "python-workshop",
+                "qmmm-workshop",
+                "structure-validation-workshop",
+                "ubiquitin-analysis-workshop"]
+    name: jupyterhub-${{ matrix.jupyter-base }}
+    steps:  
+      - name: Trigger to build workshops
+        uses: peter-evans/repository-dispatch@v3.0.0
+        with:
+          token: ${{ secrets.BUILD_TOKEN }}
+          repository: jimboid/biosim-${{ matrix.repos }}
+          event-type: build    
+          client-payload: '{"tag": "${{ needs.build.outputs.tag }}"}'
