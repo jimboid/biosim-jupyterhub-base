@@ -1,0 +1,55 @@
+name: tests
+
+on:
+  repository_dispatch:
+    types: [test]
+
+jobs:
+  tests:
+    strategy:
+      fail-fast: false
+      matrix:
+        platform:
+          - linux/amd64
+          - linux/arm64
+    runs-on: ${{ matrix.platform == 'linux/amd64' && 'ubuntu-latest' || matrix.platform == 'linux/arm64' && 'ubuntu-24.04-arm' }}
+    name: testing on ${{ matrix.platform }} 
+    timeout-minutes: 30
+    steps:
+
+      - name: Test notebooks
+        shell: bash
+        run: |
+          docker run -t ghcr.io/${{ github.repository }}:dev bash -c " \
+            conda install mamba; \
+            mamba install -c conda-forge -y aiida-core; "
+
+  tag-as-tested:
+    runs-on: ubuntu-24.04
+    name: tag as tested
+    needs:
+      - tests
+    steps:
+      - name: Authenticate with GHCR
+        id: auth
+        uses: docker/login-action@v3.5.0
+        with:
+          registry: "ghcr.io"
+          username: ${{github.actor}}
+          password: ${{secrets.BUILD_TOKEN}}
+
+      - name: Push new tags
+        shell: bash
+        run: |
+          docker buildx imagetools create \
+            --tag ghcr.io/${{ github.repository }}:dev.tested
+            ghcr.io/${{ github.repository }}:dev
+
+      - name: Dispatch Release
+        if: ${{ github.event.client_payload.type }} != "opened"
+        uses: peter-evans/repository-dispatch@v3.0.0
+        with:
+          token: ${{ secrets.BUILD_TOKEN }}
+          repository: ${{ github.repository }}
+          event-type: release    
+          client-payload: '{"tag": "${{ github.event.client_payload.tag }}"}'
