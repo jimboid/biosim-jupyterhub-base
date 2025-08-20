@@ -1,4 +1,4 @@
-name: build
+name: build, test and release
 on:
   workflow_dispatch:
   schedule:
@@ -6,9 +6,9 @@ on:
   pull_request:
     types: [opened]
 
-
 jobs:
-  build:
+
+build:
     strategy:
       fail-fast: false
       matrix:
@@ -16,7 +16,7 @@ jobs:
           - linux/amd64
           - linux/arm64
     runs-on: ${{ matrix.platform == 'linux/amd64' && 'ubuntu-24.04' || matrix.platform == 'linux/arm64' && 'ubuntu-24.04-arm' }}
-    name: ${{ matrix.platform }} base-build
+    name: ${{ matrix.platform }} build
     outputs:
       tag: ${{ steps.envvars.outputs.tag }}
     steps:
@@ -74,7 +74,7 @@ jobs:
 
   merge:
     runs-on: ubuntu-24.04
-    name: merge into multiarch
+    name: merge into multiarch manifest
     needs:
       - build
     steps:
@@ -128,17 +128,93 @@ jobs:
         run: |
           docker buildx imagetools inspect ghcr.io/${{ github.repository }}:${{ needs.build.outputs.tag }}
 
-  trigger-tests:
-    runs-on: ubuntu-24.04
-    name: trigger tests
+  tests:
+    strategy:
+      fail-fast: false
+      matrix:
+        platform:
+          - linux/amd64
+          - linux/arm64
+    runs-on: ${{ matrix.platform == 'linux/amd64' && 'ubuntu-latest' || matrix.platform == 'linux/arm64' && 'ubuntu-24.04-arm' }}
+    name: testing on ${{ matrix.platform }} 
+    timeout-minutes: 30
     needs: 
       - build
       - merge
     steps:
-      - name: Dispatch Tests
-        uses: peter-evans/repository-dispatch@v3.0.0
+
+      - name: Test notebooks
+        shell: bash
+        run: |
+          docker run -t ghcr.io/${{ github.repository }}:dev bash -c " \
+            conda install mamba; \
+            mamba install -c conda-forge -y aiida-core; "
+
+  tags:
+    runs-on: ubuntu-24.04
+    name: tag as tested
+    needs:
+      - build
+      - tests
+    steps:
+      - name: Authenticate with GHCR
+        id: auth
+        uses: docker/login-action@v3.5.0
         with:
-          token: ${{ secrets.BUILD_TOKEN }}
-          repository: ${{ github.repository }}
-          event-type: test    
-          client-payload: '{"tag": "${{ needs.build.outputs.tag }}", "type": "${{github.event.action}}"}'
+          registry: "ghcr.io"
+          username: ${{github.actor}}
+          password: ${{secrets.BUILD_TOKEN}}
+
+      - name: tag as tested
+        shell: bash
+        run: |
+          docker buildx imagetools create \
+            --tag ghcr.io/${{ github.repository }}:dev.tested
+            ghcr.io/${{ github.repository }}:dev
+
+      - name: tag release versions
+        if: ${{github.event.action}} != "opened"
+        shell: bash
+        run: |
+          docker buildx imagetools create \
+            --tag ghcr.io/${{ github.repository }}:latest \
+            --tag ghcr.io/${{ github.repository }}:${{ needs.build.outputs.tag }} \
+            ghcr.io/${{ github.repository }}:dev
+
+#  triggers:
+#    runs-on: ubuntu-24.04
+#    needs:
+#      - build
+#      - tags
+#    if: ${{github.event.action}} != "opened"
+#    strategy:
+#      matrix:
+#        repos: ["aiida-gpcr-workshop",
+#                "aiida-lysozyme-workshop",
+#                "basic-analysis-workshop",
+#                "basic-statistics-workshop",
+#                "beginners-workshop",
+#                "clustering-workshop",
+#                "codeentropy-workshop",
+#                "docking-workshop",
+#                "enhanced-sampling-workshop",
+#                "equilibration-workshop",
+#                "introamber-workshop",
+#                "nemd-workshop",
+#                "openff-workshop",
+#                "pca-workshop",
+#                "pdb2pqr-workshop",
+#                "python-workshop",
+#                "qmmm-workshop",
+#                "structure-validation-workshop",
+#                "ubiquitin-analysis-workshop"]
+#    name: jupyterhub-${{ matrix.jupyter-base }}
+#    steps:  
+#      - name: Trigger to build workshops
+#        uses: peter-evans/repository-dispatch@v3.0.0
+#        with:
+#          token: ${{ secrets.BUILD_TOKEN }}
+#          repository: jimboid/biosim-${{ matrix.repos }}
+#          event-type: build    
+#          client-payload: '{"tag": "${{ needs.build.outputs.tag }}"}'
+
