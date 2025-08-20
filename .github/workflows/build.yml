@@ -1,8 +1,9 @@
-name: build
+name: ci/cd
 on:
   workflow_dispatch:
   schedule:
     - cron: '30 9 * * 1,3' # runs workflow every Monday and Wednesday at 9:30 UTC.
+  pull_request:
 
 jobs:
   build:
@@ -13,7 +14,7 @@ jobs:
           - linux/amd64
           - linux/arm64
     runs-on: ${{ matrix.platform == 'linux/amd64' && 'ubuntu-24.04' || matrix.platform == 'linux/arm64' && 'ubuntu-24.04-arm' }}
-    name: ${{ matrix.platform }} base-build
+    name: build ${{ matrix.platform }}
     outputs:
       tag: ${{ steps.envvars.outputs.tag }}
     steps:
@@ -71,6 +72,7 @@ jobs:
 
   merge:
     runs-on: ubuntu-24.04
+    name: merge into multiarch manifest
     needs:
       - build
     steps:
@@ -98,9 +100,7 @@ jobs:
         uses: docker/metadata-action@v5.8.0
         with:
           images: ghcr.io/${{ github.repository }}
-          tags: |
-            latest
-            ${{ needs.build.outputs.tag }}
+          tags: dev.build
 
       - name: Create manifest list and push
         id: annotate
@@ -126,36 +126,92 @@ jobs:
         run: |
           docker buildx imagetools inspect ghcr.io/${{ github.repository }}:${{ needs.build.outputs.tag }}
 
-  trigger:
-    needs: [merge, build]
-    runs-on: ubuntu-24.04
+  tests:
     strategy:
+      fail-fast: false
       matrix:
-        repos: ["aiida-gpcr",
-                "aiida-lysozyme",
-                "basic-analysis",
-                "basic-statistics",
-                "beginners",
-                "clustering",
-                "codeentropy",
-                "docking",
-                "enhanced-sampling",
-                "equilibration",
-                "introamber",
-                "nemd",
-                "openff",
-                "pca",
-                "pdb2pqr",
-                "python",
-                "qmmm",
-                "structure-validation",
-                "ubiquitin-analysis"]
-    name: jupyterhub-${{ matrix.jupyter-base }}
-    steps:  
-      - name: Repository Dispatch Build Trigger
-        uses: peter-evans/repository-dispatch@v3.0.0
+        platform:
+          - linux/amd64
+          - linux/arm64
+    runs-on: ${{ matrix.platform == 'linux/amd64' && 'ubuntu-latest' || matrix.platform == 'linux/arm64' && 'ubuntu-24.04-arm' }}
+    name: testing on ${{ matrix.platform }} 
+    timeout-minutes: 30
+    needs: 
+      - build
+      - merge
+    steps:
+
+      - name: Test notebooks
+        shell: bash
+        run: |
+          docker run -t ghcr.io/${{ github.repository }}:dev.build bash -c " \
+            conda install mamba; \
+            mamba install -c conda-forge -y aiida-core; "
+
+  tags:
+    runs-on: ubuntu-24.04
+    name: add tags
+    needs:
+      - build
+      - tests
+    steps:
+      - name: Authenticate with GHCR
+        id: auth
+        uses: docker/login-action@v3.5.0
         with:
-          token: ${{ secrets.BUILD_TOKEN }}
-          repository: jimboid/biosim-${{ matrix.repos }}-workshop
-          event-type: build    
-          client-payload: '{"tag": "${{ needs.build.outputs.tag }}"}'
+          registry: "ghcr.io"
+          username: ${{github.actor}}
+          password: ${{secrets.BUILD_TOKEN}}
+
+      - name: tag as tested
+        shell: bash
+        run: |
+          docker buildx imagetools create \
+            --tag ghcr.io/${{ github.repository }}:dev.tested \
+            ghcr.io/${{ github.repository }}:dev.build
+
+      - name: tag release versions
+        if: github.event_name != 'pull_request'
+        shell: bash
+        run: |
+          docker buildx imagetools create \
+            --tag ghcr.io/${{ github.repository }}:latest \
+            --tag ghcr.io/${{ github.repository }}:${{ needs.build.outputs.tag }} \
+            ghcr.io/${{ github.repository }}:dev.build
+
+#  triggers:
+#    runs-on: ubuntu-24.04
+#    needs:
+#      - build
+#      - tags
+#    strategy:
+#      matrix:
+#        repos: ["aiida-gpcr-workshop",
+#                "aiida-lysozyme-workshop",
+#                "basic-analysis-workshop",
+#                "basic-statistics-workshop",
+#                "beginners-workshop",
+#                "clustering-workshop",
+#                "codeentropy-workshop",
+#                "docking-workshop",
+#                "enhanced-sampling-workshop",
+#                "equilibration-workshop",
+#                "introamber-workshop",
+#                "nemd-workshop",
+#                "openff-workshop",
+#                "pca-workshop",
+#                "pdb2pqr-workshop",
+#                "python-workshop",
+#                "qmmm-workshop",
+#                "structure-validation-workshop",
+#                "ubiquitin-analysis-workshop"]
+#    name: jupyterhub-${{ matrix.jupyter-base }}
+#    steps:  
+#      - name: Trigger to build workshops
+#        uses: peter-evans/repository-dispatch@v3.0.0
+#        with:
+#          token: ${{ secrets.BUILD_TOKEN }}
+#          repository: jimboid/biosim-${{ matrix.repos }}
+#          event-type: build    
+#          client-payload: '{"tag": "${{ needs.build.outputs.tag }}"}'
+
