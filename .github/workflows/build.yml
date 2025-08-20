@@ -100,7 +100,7 @@ jobs:
         uses: docker/metadata-action@v5.8.0
         with:
           images: ghcr.io/${{ github.repository }}
-          tags: dev
+          tags: dev.build
 
       - name: Create manifest list and push
         id: annotate
@@ -144,7 +144,7 @@ jobs:
       - name: Test notebooks
         shell: bash
         run: |
-          docker run -t ghcr.io/${{ github.repository }}:dev bash -c " \
+          docker run -t ghcr.io/${{ github.repository }}:dev.build bash -c " \
             conda install mamba; \
             mamba install -c conda-forge -y aiida-core; "
 
@@ -168,7 +168,7 @@ jobs:
         run: |
           docker buildx imagetools create \
             --tag ghcr.io/${{ github.repository }}:dev.tested \
-            ghcr.io/${{ github.repository }}:dev
+            ghcr.io/${{ github.repository }}:dev.build
 
       - name: tag release versions
         if: github.event_name != 'pull_request'
@@ -177,14 +177,13 @@ jobs:
           docker buildx imagetools create \
             --tag ghcr.io/${{ github.repository }}:latest \
             --tag ghcr.io/${{ github.repository }}:${{ needs.build.outputs.tag }} \
-            ghcr.io/${{ github.repository }}:dev
+            ghcr.io/${{ github.repository }}:dev.build
 
 #  triggers:
 #    runs-on: ubuntu-24.04
 #    needs:
 #      - build
 #      - tags
-#    if: github.event_name != 'pull_request'
 #    strategy:
 #      matrix:
 #        repos: ["aiida-gpcr-workshop",
