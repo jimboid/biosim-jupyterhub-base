@@ -178,7 +178,7 @@ jobs:
           token: ${{ secrets.BUILD_TOKEN }}
           repository: jimboid/biosim-workshops-dash
           event-type: build    
-          client-payload: '{"repo": "${{ github.repository }}", "tag": "${{ needs.build.outputs.tag }}"}'
+          client-payload: '{"repo": "${{ github.event.repository.name }}", "tag": "${{ needs.build.outputs.tag }}"}'
 
   triggers:
     runs-on: ubuntu-24.04
